@@ -214,29 +214,29 @@ inline _Value* value_type(const _Rb_tree_iterator<_Value, _Ref, _Ptr>&) {
 #endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 
 inline void 
-_Rb_tree_rotate_left(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
+_Rb_tree_rotate_left(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)//左旋转，_x是目标节点，__root根节点
 {
-  _Rb_tree_node_base* __y = __x->_M_right;
-  __x->_M_right = __y->_M_left;
-  if (__y->_M_left !=0)
-    __y->_M_left->_M_parent = __x;
-  __y->_M_parent = __x->_M_parent;
-
+  _Rb_tree_node_base* __y = __x->_M_right;//指向目标节点的右节点
+  __x->_M_right = __y->_M_left;//把目标节点的有节点的左节点安到目标节点的右节点
+  if (__y->_M_left !=0)  //看看目标节点的右节点的左节点为不为空，如果为空则不需要执行下面操作
+    __y->_M_left->_M_parent = __x;//把目标节点右节点的左节点的爸爸指向目标节点
+  __y->_M_parent = __x->_M_parent;//把目标节点的爸爸给目标节点的右节点做爸爸
+//判断目标节点的爸爸是什么情况，没有爸爸，或是爸爸的右节点，或是爸爸的左节点
   if (__x == __root)
     __root = __y;
   else if (__x == __x->_M_parent->_M_left)
     __x->_M_parent->_M_left = __y;
   else
     __x->_M_parent->_M_right = __y;
-  __y->_M_left = __x;
-  __x->_M_parent = __y;
+  __y->_M_left = __x; // 目标节点和目标节点的右节点换位
+  __x->_M_parent = __y;//目标节点的右节点左目标节点的爸爸
 }
 
 inline void 
 _Rb_tree_rotate_right(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
-  _Rb_tree_node_base* __y = __x->_M_left;
-  __x->_M_left = __y->_M_right;
+  _Rb_tree_node_base* __y = __x->_M_left; //_y指向目标节点的左节点
+  __x->_M_left = __y->_M_right;//目标节点的左节点指向目标节点的左节点的右节点
   if (__y->_M_right != 0)
     __y->_M_right->_M_parent = __x;
   __y->_M_parent = __x->_M_parent;
@@ -254,18 +254,18 @@ _Rb_tree_rotate_right(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 inline void 
 _Rb_tree_rebalance(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
-  __x->_M_color = _S_rb_tree_red;
-  while (__x != __root && __x->_M_parent->_M_color == _S_rb_tree_red) {
-    if (__x->_M_parent == __x->_M_parent->_M_parent->_M_left) {
-      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_right;
-      if (__y && __y->_M_color == _S_rb_tree_red) {
-        __x->_M_parent->_M_color = _S_rb_tree_black;
-        __y->_M_color = _S_rb_tree_black;
-        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
-        __x = __x->_M_parent->_M_parent;
+  __x->_M_color = _S_rb_tree_red;//初始颜色为红色
+  while (__x != __root && __x->_M_parent->_M_color == _S_rb_tree_red) {//不为根节点和父节点是红色
+    if (__x->_M_parent == __x->_M_parent->_M_parent->_M_left) {//父节点==爷爷节点的左节点
+      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_right; //记录下爷爷节点的右节点
+      if (__y && __y->_M_color == _S_rb_tree_red) { //右节点不为空并且；颜色为红色
+        __x->_M_parent->_M_color = _S_rb_tree_black; // 把爸爸节点变为黑色
+        __y->_M_color = _S_rb_tree_black; //把爸爸的兄弟节点也变为黑色
+        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red; //让爷爷节点为红色
+        __x = __x->_M_parent->_M_parent; //回退到爷爷节点
       }
-      else {
-        if (__x == __x->_M_parent->_M_right) {
+      else { // 父节点为爷爷节点的右节点
+        if (__x == __x->_M_parent->_M_right) { //
           __x = __x->_M_parent;
           _Rb_tree_rotate_left(__x, __root);
         }
