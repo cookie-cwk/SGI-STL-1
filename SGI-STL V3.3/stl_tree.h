@@ -255,7 +255,7 @@ inline void
 _Rb_tree_rebalance(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
 {
   __x->_M_color = _S_rb_tree_red;//初始颜色为红色
-  while (__x != __root && __x->_M_parent->_M_color == _S_rb_tree_red) {//不为根节点和父节点是红色
+  while (__x != __root && __x->_M_parent->_M_color == _S_rb_tree_red) {//不为根节点和父节点是红色，因为根节点为黑色，所以哪怕最后根节点颜色被改变，也不会执行到根节点的子节点
     if (__x->_M_parent == __x->_M_parent->_M_parent->_M_left) {//父节点==爷爷节点的左节点
       _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_right; //记录下爷爷节点的右节点
       if (__y && __y->_M_color == _S_rb_tree_red) { //右节点不为空并且；颜色为红色
@@ -264,23 +264,23 @@ _Rb_tree_rebalance(_Rb_tree_node_base* __x, _Rb_tree_node_base*& __root)
         __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red; //让爷爷节点为红色
         __x = __x->_M_parent->_M_parent; //回退到爷爷节点
       }
-      else { // 父节点为爷爷节点的右节点
-        if (__x == __x->_M_parent->_M_right) { //
-          __x = __x->_M_parent;
-          _Rb_tree_rotate_left(__x, __root);
+      else { // 如果_y不存在或者_y的颜色为黑色
+        if (__x == __x->_M_parent->_M_right) { //如果当前节点为父节点的右节点
+          __x = __x->_M_parent; //更新指针指向父节点
+          _Rb_tree_rotate_left(__x, __root); //左旋
         }
-        __x->_M_parent->_M_color = _S_rb_tree_black;
-        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
-        _Rb_tree_rotate_right(__x->_M_parent->_M_parent, __root);
+        __x->_M_parent->_M_color = _S_rb_tree_black; //父节点颜色改为黑色
+        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red; //爷爷节点颜色改为红色
+        _Rb_tree_rotate_right(__x->_M_parent->_M_parent, __root);//右旋
       }
     }
-    else {
-      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_left;
-      if (__y && __y->_M_color == _S_rb_tree_red) {
-        __x->_M_parent->_M_color = _S_rb_tree_black;
-        __y->_M_color = _S_rb_tree_black;
-        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red;
-        __x = __x->_M_parent->_M_parent;
+    else {//父节点为爷爷节点的右节点
+      _Rb_tree_node_base* __y = __x->_M_parent->_M_parent->_M_left;//记录爷爷节点的左节点
+      if (__y && __y->_M_color == _S_rb_tree_red) { //若爷爷节点的左节点为红色
+        __x->_M_parent->_M_color = _S_rb_tree_black; 父节点为黑色
+        __y->_M_color = _S_rb_tree_black; //父节点的兄弟节点为黑色
+        __x->_M_parent->_M_parent->_M_color = _S_rb_tree_red; //爷爷节点为红色
+        __x = __x->_M_parent->_M_parent; //更新指针指向爷爷节点
       }
       else {
         if (__x == __x->_M_parent->_M_left) {
