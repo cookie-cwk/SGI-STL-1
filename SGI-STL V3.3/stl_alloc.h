@@ -106,12 +106,12 @@ __STL_BEGIN_NAMESPACE
 #endif
 
 template <int __inst>
-class __malloc_alloc_template {
+class __malloc_alloc_template {//一级配置器，直接调用malloc和free,需求块大于128bytes,就调用一级配置器
 
 private:
 
   static void* _S_oom_malloc(size_t);
-  static void* _S_oom_realloc(void*, size_t);
+  static void* _S_oom_realloc(void*, size_t);//oom = out of memory,这些函数是用来处理内存不足的情况
 
 #ifndef __STL_STATIC_TEMPLATE_MEMBER_BUG
   static void (* __malloc_alloc_oom_handler)();
@@ -119,25 +119,26 @@ private:
 
 public:
 
-  static void* allocate(size_t __n)
+  static void* allocate(size_t __n) // allocate直接调用malloc();
   {
     void* __result = malloc(__n);
+    //无法分配内存，则调用_S_oom_malloc();
     if (0 == __result) __result = _S_oom_malloc(__n);
     return __result;
   }
 
-  static void deallocate(void* __p, size_t /* __n */)
+  static void deallocate(void* __p, size_t /* __n */) //deallocate直接调用free();
   {
     free(__p);
   }
 
-  static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz)
+  static void* reallocate(void* __p, size_t /* old_sz */, size_t __new_sz) //模拟c++ set_new_handle()处理内存不足情况
   {
     void* __result = realloc(__p, __new_sz);
     if (0 == __result) __result = _S_oom_realloc(__p, __new_sz);
     return __result;
   }
-
+ //一下仿真C++的 set_new_handle().换句话说你可以通过它指定自己的out-of-memory handler
   static void (* __set_malloc_handler(void (*__f)()))()
   {
     void (* __old)() = __malloc_alloc_oom_handler;
@@ -161,11 +162,11 @@ __malloc_alloc_template<__inst>::_S_oom_malloc(size_t __n)
     void (* __my_malloc_handler)();
     void* __result;
 
-    for (;;) {
+    for (;;) { //不断释放，配置，再释放，在配置....
         __my_malloc_handler = __malloc_alloc_oom_handler;
-        if (0 == __my_malloc_handler) { __THROW_BAD_ALLOC; }
-        (*__my_malloc_handler)();
-        __result = malloc(__n);
+        if (0 == __my_malloc_handler) { __THROW_BAD_ALLOC; } //如果客端没有设定内存不足处理程序，则直接调用 __THROW_BAD_ALLOC; 
+        (*__my_malloc_handler)(); //调用处理例程，释放内存
+        __result = malloc(__n);  //申请内存
         if (__result) return(__result);
     }
 }
@@ -285,7 +286,7 @@ typedef malloc_alloc single_client_alloc;
   enum {_NFREELISTS = 16}; // _MAX_BYTES/_ALIGN
 #endif
 
-template <bool threads, int inst>
+template <bool threads, int inst> //第二级配置器
 class __default_alloc_template {
 
 private:
@@ -310,7 +311,7 @@ private:
     static _Obj* __STL_VOLATILE _S_free_list[]; 
         // Specifying a size results in duplicate def for 4.1
 # else
-    static _Obj* __STL_VOLATILE _S_free_list[_NFREELISTS]; 
+    static _Obj* __STL_VOLATILE _S_free_list[_NFREELISTS];  //维护16个小型链表，负责16个小型区块的次配能力，内存池以malloc()配置而得，如果内存不足，调用第一级配置器
 # endif
   static  size_t _S_freelist_index(size_t __bytes) {
         return (((__bytes) + (size_t)_ALIGN-1)/(size_t)_ALIGN - 1);
