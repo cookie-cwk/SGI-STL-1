@@ -314,18 +314,18 @@ private:
     static _Obj* __STL_VOLATILE _S_free_list[_NFREELISTS];  //维护16个小型链表，负责16个小型区块的次配能力，内存池以malloc()配置而得，如果内存不足，调用第一级配置器
 # endif
   static  size_t _S_freelist_index(size_t __bytes) {
-        return (((__bytes) + (size_t)_ALIGN-1)/(size_t)_ALIGN - 1);
+        return (((__bytes) + (size_t)_ALIGN-1)/(size_t)_ALIGN - 1);//计算应将链表中那个空间分配
   }
 
   // Returns an object of size __n, and optionally adds to size __n free list.
-  static void* _S_refill(size_t __n);
+  static void* _S_refill(size_t __n);//重新填充链表
   // Allocates a chunk for nobjs of size size.  nobjs may be reduced
   // if it is inconvenient to allocate the requested number.
   static char* _S_chunk_alloc(size_t __size, int& __nobjs);
 
   // Chunk allocation state.
-  static char* _S_start_free;
-  static char* _S_end_free;
+  static char* _S_start_free;//内存池起始位置
+  static char* _S_end_free; //内存池结束位置，只在_S_chunk_alloc()中变化;
   static size_t _S_heap_size;
 
 # ifdef __STL_THREADS
