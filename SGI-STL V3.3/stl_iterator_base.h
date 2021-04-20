@@ -110,7 +110,7 @@ struct iterator_traits {
   typedef typename _Iterator::iterator_category iterator_category;
   typedef typename _Iterator::value_type        value_type;
   typedef typename _Iterator::difference_type   difference_type;
-  typedef typename _Iterator::pointer           pointer;
+  typedef typename _Iterator::pointer           pointer;              //五种类型萃取
   typedef typename _Iterator::reference         reference;
 };
 
@@ -118,7 +118,7 @@ template <class _Tp>
 struct iterator_traits<_Tp*> {
   typedef random_access_iterator_tag iterator_category;
   typedef _Tp                         value_type;
-  typedef ptrdiff_t                   difference_type;
+  typedef ptrdiff_t                   difference_type;  //偏特化内置类型指针如int*
   typedef _Tp*                        pointer;
   typedef _Tp&                        reference;
 };
@@ -127,11 +127,11 @@ template <class _Tp>
 struct iterator_traits<const _Tp*> {
   typedef random_access_iterator_tag iterator_category;
   typedef _Tp                         value_type;
-  typedef ptrdiff_t                   difference_type;
+  typedef ptrdiff_t                   difference_type;  //偏特化常量指针如const int*
   typedef const _Tp*                  pointer;
   typedef const _Tp&                  reference;
 };
-
+//所以迭代器萃取器接受迭代器或指针
 // The overloaded functions iterator_category, distance_type, and
 // value_type are not part of the C++ standard.  (They have been
 // replaced by struct iterator_traits.)  They are included for
@@ -145,14 +145,14 @@ __iterator_category(const _Iter&)
 {
   typedef typename iterator_traits<_Iter>::iterator_category _Category;
   return _Category();
-}
+} //萃取迭代器类型
 
 template <class _Iter>
 inline typename iterator_traits<_Iter>::difference_type*
 __distance_type(const _Iter&)
 {
   return static_cast<typename iterator_traits<_Iter>::difference_type*>(0);
-}
+} //萃取迭代器differrence_type
 
 template <class _Iter>
 inline typename iterator_traits<_Iter>::value_type*
